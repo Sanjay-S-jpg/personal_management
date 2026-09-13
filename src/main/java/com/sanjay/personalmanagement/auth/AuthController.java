@@ -28,4 +28,13 @@ public class AuthController {
             String password
     ) {
     }
+
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request) {
+
+        return authService.login(
+                request.email(),
+                request.password()
+        );
+    }
 }
