@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-public record AddExpenseRequest(
+public record UpdateExpenseRequest(
 
         @NotBlank(message = "Expense name is required")
         String name,

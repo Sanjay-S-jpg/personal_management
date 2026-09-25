@@ -1,6 +1,7 @@
 package com.sanjay.personalmanagement.expense;
 
 import com.sanjay.personalmanagement.user.User;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class ExpenseController {
 
     @PostMapping
     public Expense addExpense(
-            @RequestBody AddExpenseRequest request,
+            @Valid @RequestBody AddExpenseRequest request,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
@@ -179,5 +180,30 @@ public class ExpenseController {
                 year,
                 month
         );
-    }   
+    }
+
+
+    @PutMapping("/{id}")
+    public ExpenseResponse updateExpense(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateExpenseRequest request,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+
+        return expenseService.updateExpense(id, request, user);
+    }
+
+
+    @DeleteMapping("/{id}")
+    public String deleteExpense(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+
+        expenseService.deleteExpense(id, user);
+
+        return "Expense deleted successfully";
+    }
 }

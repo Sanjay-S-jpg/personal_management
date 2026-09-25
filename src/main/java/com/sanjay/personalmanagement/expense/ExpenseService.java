@@ -345,4 +345,37 @@ public class ExpenseService {
                 .toList();
     }
 
+    public ExpenseResponse updateExpense(
+            Long id,
+            UpdateExpenseRequest request,
+            User user
+    ) {
+        Expense expense = expenseRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Expense not found"));
+
+        expense.setName(request.name());
+        expense.setAmount(request.amount());
+        expense.setCategory(request.category());
+        expense.setSubcategory(request.subcategory());
+
+        Expense updatedExpense = expenseRepository.save(expense);
+
+        return new ExpenseResponse(
+                updatedExpense.getId(),
+                updatedExpense.getName(),
+                updatedExpense.getAmount(),
+                updatedExpense.getCategory(),
+                updatedExpense.getSubcategory(),
+                updatedExpense.getDateTime()
+        );
+    }
+
+    public void deleteExpense(Long id, User user) {
+
+        Expense expense = expenseRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Expense not found"));
+
+        expenseRepository.delete(expense);
+    }
+
 }
