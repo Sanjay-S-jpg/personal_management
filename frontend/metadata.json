@@ -1,0 +1,6 @@
+{
+  "name": "Personal Management",
+  "description": "A modern, polished personal management platform featuring an intuitive Expense Tracker, future-ready module architecture, and Spring Boot REST API integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
