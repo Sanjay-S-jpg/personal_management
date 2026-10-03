@@ -326,19 +326,22 @@ export const ExpenseProvider: React.FC<{
 
 
   // --------------------------------
-  // Delete expense
-  // --------------------------------
-
+// Delete expense
+// --------------------------------
   const removeExpense = async (
     id: string | number
   ): Promise<boolean> => {
 
-    const result =
-      await expenseService.deleteExpense(
-        Number(id)
-      );
+    const expenseId = Number(id);
 
-    await refreshExpenses();
+    const result =
+      await expenseService.deleteExpense(expenseId);
+
+    setExpenses((currentExpenses) =>
+      currentExpenses.filter(
+        (expense) => expense.id !== expenseId
+      )
+    );
 
     return result;
   };

@@ -26,6 +26,25 @@ export const ExpenseTrackerLayout: React.FC<ExpenseTrackerLayoutProps> = ({
 }) => {
   const [activeSubView, setActiveSubView] = useState<ExpenseSubView>(initialSubView);
 
+  const navigateSubView = (view: ExpenseSubView) => {
+  setActiveSubView(view);
+
+  const paths: Record<ExpenseSubView, string> = {
+    dashboard: '/expenses',
+    add: '/expenses/add',
+    history: '/expenses/history',
+    weekly: '/expenses/weekly',
+    monthly: '/expenses/monthly',
+  };
+
+  window.history.pushState({}, '', paths[view]);
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   const navItems = [
     {
       id: 'dashboard' as ExpenseSubView,
@@ -76,7 +95,7 @@ export const ExpenseTrackerLayout: React.FC<ExpenseTrackerLayoutProps> = ({
         {/* Action Button: Quick Add Expense if not already on add tab */}
         {activeSubView !== 'add' && (
           <button
-            onClick={() => setActiveSubView('add')}
+            onClick={() => navigateSubView('add')}
             className="self-start sm:self-auto px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
           >
             <PlusCircle className="w-3.5 h-3.5" />
@@ -92,7 +111,7 @@ export const ExpenseTrackerLayout: React.FC<ExpenseTrackerLayoutProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => setActiveSubView(item.id)}
+              onClick={() => navigateSubView(item.id)}
               className={`flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg transition-colors whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-neutral-800 text-white shadow-sm font-semibold'
@@ -112,15 +131,15 @@ export const ExpenseTrackerLayout: React.FC<ExpenseTrackerLayoutProps> = ({
       <div className="pt-2">
         {activeSubView === 'dashboard' && (
           <ExpenseDashboard
-            onNavigateAddExpense={() => setActiveSubView('add')}
-            onNavigateHistory={() => setActiveSubView('history')}
+            onNavigateAddExpense={() => navigateSubView('add')}
+            onNavigateHistory={() => navigateSubView('history')}
           />
         )}
 
         {activeSubView === 'add' && (
           <AddExpenseForm
-            onSuccess={() => setActiveSubView('history')}
-            onCancel={() => setActiveSubView('dashboard')}
+            onSuccess={() => navigateSubView('history')}
+            onCancel={() => navigateSubView('dashboard')}
           />
         )}
 

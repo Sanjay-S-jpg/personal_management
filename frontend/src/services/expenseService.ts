@@ -56,12 +56,9 @@ export const expenseService = {
   },
 
   async deleteExpense(id: number): Promise<boolean> {
-    await request<string>(
-      `/api/expenses/${id}`,
-      {
-        method: 'DELETE',
-      }
-    );
+  await request<void>(`/api/expenses/${id}`, {
+    method: 'DELETE',
+  });
 
     return true;
   },

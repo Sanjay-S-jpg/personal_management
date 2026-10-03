@@ -74,18 +74,24 @@ export const ExpenseHistory: React.FC = () => {
 
   const totalFilteredAmount = processedExpenses.reduce((s, e) => s + Number(e.amount), 0);
 
-  const handleConfirmDelete = async () => {
+    const handleConfirmDelete = async () => {
     if (!deletingExpense) return;
+
     setIsDeleting(true);
+
     try {
-      await removeExpense(deletingExpense.id);
+      const result = await removeExpense(deletingExpense.id);
+
+      console.log('DELETE RESULT:', result);
+
       setDeletingExpense(null);
+
     } catch (err) {
-      console.error('Delete error', err);
+      console.error('Delete error:', err);
     } finally {
-      setIsDeleting(false);
-    }
-  };
+        setIsDeleting(false);
+      }
+    };
 
   const handleUpdate = async (id: string | number, payload: UpdateExpensePayload) => {
     await editExpense(id, payload);

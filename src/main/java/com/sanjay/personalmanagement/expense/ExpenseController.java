@@ -3,6 +3,7 @@ package com.sanjay.personalmanagement.expense;
 import com.sanjay.personalmanagement.user.User;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -196,14 +197,12 @@ public class ExpenseController {
 
 
     @DeleteMapping("/{id}")
-    public String deleteExpense(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteExpense(
             @PathVariable Long id,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
-
         expenseService.deleteExpense(id, user);
-
-        return "Expense deleted successfully";
     }
 }
