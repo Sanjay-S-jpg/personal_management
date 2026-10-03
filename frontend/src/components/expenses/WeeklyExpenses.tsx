@@ -69,6 +69,22 @@ export const WeeklyExpenses: React.FC = () => {
     return days;
   }, [monday, weekExpenses]);
 
+  const currentWeekMonday = useMemo(() => {
+  const now = new Date();
+
+  const dayOfWeek = now.getDay();
+  const diffToMonday =
+    now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+
+  const monday = new Date(now);
+  monday.setDate(diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+
+  return monday;
+  }, []);
+
+  const isCurrentWeek = monday.getTime() === currentWeekMonday.getTime();
+
   return (
     <div className="space-y-6">
       {/* Header and Week Navigator */}
@@ -96,8 +112,13 @@ export const WeeklyExpenses: React.FC = () => {
 
           <button
             onClick={() => setWeekOffset(weekOffset + 1)}
-            className="p-2 bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
-            title="Next Week"
+            disabled={isCurrentWeek}
+            className={`p-2 bg-neutral-900 border border-neutral-800 rounded-lg transition-colors ${
+              isCurrentWeek
+                ? 'cursor-not-allowed text-neutral-600 opacity-50'
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+            }`}
+            title={isCurrentWeek ? 'Future weeks are not available' : 'Next Week'}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
