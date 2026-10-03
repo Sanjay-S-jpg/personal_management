@@ -1,276 +1,163 @@
 import {
-  CategorySummary,
+  CategoryCount,
+  CategoryExpense,
   CreateExpensePayload,
-  DailySpending,
+  DailyExpense,
   Expense,
   ExpenseDashboardSummary,
+  BackendDashboardSummary,
+  HighestExpense,
+  AverageExpense,
   UpdateExpensePayload,
 } from '../types/expense';
-import { ApiError, request } from './apiClient';
-import { mockBackend } from './mockBackend';
 
-/**
- * Expense Service
- * Connects directly to Spring Boot backend endpoints:
- *
- * POST /api/expenses
- * GET /api/expenses
- * GET /api/expenses/{id}
- * PUT /api/expenses/{id}
- * DELETE /api/expenses/{id}
- *
- * GET /api/expenses/monthly
- * GET /api/expenses/weekly
- * GET /api/expenses/date
- *
- * GET /api/expenses/dashboard
- * GET /api/expenses/dashboard/monthly
- * GET /api/expenses/dashboard/weekly
- * GET /api/expenses/dashboard/categories
- * GET /api/expenses/dashboard/monthly/categories
- * GET /api/expenses/dashboard/daily
- * GET /api/expenses/dashboard/highest
- * GET /api/expenses/dashboard/category-counts
- * GET /api/expenses/dashboard/average
- */
-
-// Helper to determine whether we should gracefully fallback to isolated mock
-const handleWithFallback = async <T>(
-  apiFn: () => Promise<T>,
-  fallbackFn: () => T | Promise<T>
-): Promise<T> => {
-  try {
-    return await apiFn();
-  } catch (err: any) {
-    if (err instanceof ApiError && err.status === 0) {
-      // Backend server is offline or unreachable; use isolated mock store
-      return await fallbackFn();
-    }
-    throw err;
-  }
-};
+import { request } from './apiClient';
 
 export const expenseService = {
-  // 1. POST /api/expenses
-  async createExpense(payload: CreateExpensePayload): Promise<Expense> {
-    return handleWithFallback(
-      () =>
-        request<Expense>('/api/expenses', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        }),
-      () => mockBackend.create(payload)
+
+  // -------------------------
+  // CRUD
+  // -------------------------
+
+  async createExpense(
+    payload: CreateExpensePayload
+  ): Promise<Expense> {
+    return request<Expense>('/api/expenses', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getAllExpenses(
+    sort: 'asc' | 'desc' = 'desc'
+  ): Promise<Expense[]> {
+    return request<Expense[]>(
+      `/api/expenses?sort=${sort}`
     );
   },
 
-  // 2. GET /api/expenses
-  async getAllExpenses(): Promise<Expense[]> {
-    return handleWithFallback(
-      () => request<Expense[]>('/api/expenses'),
-      () => mockBackend.getAll()
+  async getExpense(id: number): Promise<Expense> {
+    return request<Expense>(
+      `/api/expenses/${id}`
     );
   },
 
-  // 3. GET /api/expenses/{id}
-  async getExpenseById(id: string | number): Promise<Expense> {
-    return handleWithFallback(
-      () => request<Expense>(`/api/expenses/${id}`),
-      () => {
-        const item = mockBackend.getById(id);
-        if (!item) throw new ApiError(`Expense ${id} not found`, 404);
-        return item;
+  async updateExpense(
+    id: number,
+    payload: UpdateExpensePayload
+  ): Promise<Expense> {
+    return request<Expense>(
+      `/api/expenses/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
       }
     );
   },
 
-  // 4. PUT /api/expenses/{id}
-  async updateExpense(id: string | number, payload: UpdateExpensePayload): Promise<Expense> {
-    return handleWithFallback(
-      () =>
-        request<Expense>(`/api/expenses/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload),
-        }),
-      () => mockBackend.update(id, payload)
-    );
-  },
-
-  // 5. DELETE /api/expenses/{id}
-  async deleteExpense(id: string | number): Promise<{ success: boolean }> {
-    return handleWithFallback(
-      () =>
-        request<{ success: boolean }>(`/api/expenses/${id}`, {
-          method: 'DELETE',
-        }),
-      () => {
-        const ok = mockBackend.delete(id);
-        return { success: ok };
+  async deleteExpense(id: number): Promise<boolean> {
+    await request<string>(
+      `/api/expenses/${id}`,
+      {
+        method: 'DELETE',
       }
     );
+
+    return true;
   },
 
-  // 6. GET /api/expenses/monthly
-  async getMonthlyExpenses(year?: number, month?: number): Promise<Expense[]> {
-    const y = year ?? new Date().getFullYear();
-    const m = month ?? new Date().getMonth() + 1; // 1-indexed for HTTP params
-    return handleWithFallback(
-      () =>
-        request<Expense[]>('/api/expenses/monthly', {
-          params: { year: y, month: m },
-        }),
-      () => mockBackend.getMonthly(y, m - 1)
+  // -------------------------
+  // Expense filtering
+  // -------------------------
+
+  async getMonthlyExpenses(
+    year: number,
+    month: number
+  ): Promise<Expense[]> {
+    return request<Expense[]>(
+      `/api/expenses/monthly?year=${year}&month=${month}`
     );
   },
 
-  // 7. GET /api/expenses/weekly
-  async getWeeklyExpenses(referenceDate?: string): Promise<Expense[]> {
-    return handleWithFallback(
-      () =>
-        request<Expense[]>('/api/expenses/weekly', {
-          params: referenceDate ? { date: referenceDate } : undefined,
-        }),
-      () => mockBackend.getWeekly(referenceDate ? new Date(referenceDate) : new Date())
+  async getWeeklyExpenses(
+    date: string
+  ): Promise<Expense[]> {
+    return request<Expense[]>(
+      `/api/expenses/weekly?date=${date}`
     );
   },
 
-  // 8. GET /api/expenses/date
-  async getExpensesByDate(dateStr: string): Promise<Expense[]> {
-    return handleWithFallback(
-      () =>
-        request<Expense[]>('/api/expenses/date', {
-          params: { date: dateStr },
-        }),
-      () => mockBackend.getByDate(dateStr)
+  async getExpensesByDate(
+    date: string
+  ): Promise<Expense[]> {
+    return request<Expense[]>(
+      `/api/expenses/date?date=${date}`
     );
   },
 
-  // 9. GET /api/expenses/dashboard
-  async getDashboardSummary(): Promise<ExpenseDashboardSummary> {
-    return handleWithFallback(
-      () => request<ExpenseDashboardSummary>('/api/expenses/dashboard'),
-      () => mockBackend.getDashboardSummary()
+  // -------------------------
+  // Dashboard
+  // -------------------------
+
+  async getDashboardSummary(): Promise<BackendDashboardSummary> {
+    return request<BackendDashboardSummary>(
+      '/api/expenses/dashboard'
     );
   },
 
-  // 10. GET /api/expenses/dashboard/monthly
-  async getDashboardMonthly(): Promise<{ total: number; count: number; month: number; year: number }> {
-    const now = new Date();
-    return handleWithFallback(
-      () =>
-        request<{ total: number; count: number; month: number; year: number }>(
-          '/api/expenses/dashboard/monthly'
-        ),
-      () => {
-        const monthly = mockBackend.getMonthly();
-        const total = monthly.reduce((sum, e) => sum + Number(e.amount), 0);
-        return {
-          total: Math.round(total * 100) / 100,
-          count: monthly.length,
-          month: now.getMonth() + 1,
-          year: now.getFullYear(),
-        };
-      }
+  async getMonthlyTotal(
+    year: number,
+    month: number
+  ): Promise<number> {
+    return request<number>(
+      `/api/expenses/dashboard/monthly?year=${year}&month=${month}`
     );
   },
 
-  // 11. GET /api/expenses/dashboard/weekly
-  async getDashboardWeekly(): Promise<{ total: number; count: number }> {
-    return handleWithFallback(
-      () => request<{ total: number; count: number }>('/api/expenses/dashboard/weekly'),
-      () => {
-        const weekly = mockBackend.getWeekly();
-        const total = weekly.reduce((sum, e) => sum + Number(e.amount), 0);
-        return {
-          total: Math.round(total * 100) / 100,
-          count: weekly.length,
-        };
-      }
+  async getWeeklyTotal(
+    date: string
+  ): Promise<number> {
+    return request<number>(
+      `/api/expenses/dashboard/weekly?date=${date}`
     );
   },
 
-  // 12. GET /api/expenses/dashboard/categories
-  async getDashboardCategories(): Promise<CategorySummary[]> {
-    return handleWithFallback(
-      () => request<CategorySummary[]>('/api/expenses/dashboard/categories'),
-      () => mockBackend.getDashboardCategories()
+  async getCategoryTotals(): Promise<CategoryExpense[]> {
+    return request<CategoryExpense[]>(
+      '/api/expenses/dashboard/categories'
     );
   },
 
-  // 13. GET /api/expenses/dashboard/monthly/categories
-  async getDashboardMonthlyCategories(year?: number, month?: number): Promise<CategorySummary[]> {
-    const y = year ?? new Date().getFullYear();
-    const m = month ?? new Date().getMonth();
-    return handleWithFallback(
-      () =>
-        request<CategorySummary[]>('/api/expenses/dashboard/monthly/categories', {
-          params: { year: y, month: m + 1 },
-        }),
-      () => {
-        const monthly = mockBackend.getMonthly(y, m);
-        return mockBackend.getDashboardCategories(monthly);
-      }
+  async getDailyTotals(): Promise<DailyExpense[]> {
+    return request<DailyExpense[]>(
+      '/api/expenses/dashboard/daily'
     );
   },
 
-  // 14. GET /api/expenses/dashboard/daily
-  async getDashboardDaily(days = 7): Promise<DailySpending[]> {
-    return handleWithFallback(
-      () =>
-        request<DailySpending[]>('/api/expenses/dashboard/daily', {
-          params: { days },
-        }),
-      () => mockBackend.getDailySpending(days)
+  async getHighestExpense(): Promise<HighestExpense | null> {
+    return request<HighestExpense | null>(
+      '/api/expenses/dashboard/highest'
     );
   },
 
-  // 15. GET /api/expenses/dashboard/highest
-  async getDashboardHighest(): Promise<Expense | null> {
-    return handleWithFallback(
-      () => request<Expense | null>('/api/expenses/dashboard/highest'),
-      () => {
-        const summary = mockBackend.getDashboardSummary();
-        return summary.highestExpense;
-      }
+  async getCategoryCounts(): Promise<CategoryCount[]> {
+    return request<CategoryCount[]>(
+      '/api/expenses/dashboard/category-counts'
     );
   },
 
-  // 16. GET /api/expenses/dashboard/category-counts
-  async getDashboardCategoryCounts(): Promise<Record<string, number>> {
-    return handleWithFallback(
-      () => request<Record<string, number>>('/api/expenses/dashboard/category-counts'),
-      () => {
-        const categories = mockBackend.getDashboardCategories();
-        const map: Record<string, number> = {};
-        categories.forEach((c) => {
-          map[c.category] = c.count;
-        });
-        return map;
-      }
+  async getAverageExpense(): Promise<AverageExpense> {
+    return request<AverageExpense>(
+      '/api/expenses/dashboard/average'
     );
   },
 
-  // 17. GET /api/expenses/dashboard/average
-  async getDashboardAverage(): Promise<{ average: number }> {
-    return handleWithFallback(
-      () => request<{ average: number }>('/api/expenses/dashboard/average'),
-      () => {
-        const summary = mockBackend.getDashboardSummary();
-        return { average: summary.averageExpense };
-      }
+  async getMonthlyCategoryTotals(
+    year: number,
+    month: number
+  ): Promise<CategoryExpense[]> {
+    return request<CategoryExpense[]>(
+      `/api/expenses/dashboard/monthly/categories?year=${year}&month=${month}`
     );
-  },
-
-  // Helper: test connectivity to backend
-  async testBackendConnection(): Promise<boolean> {
-    try {
-      const baseUrl = (await import('./apiClient')).getApiBaseUrl();
-      const res = await fetch(`${baseUrl}/api/expenses`, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      });
-      return res.status < 500;
-    } catch {
-      return false;
-    }
   },
 };

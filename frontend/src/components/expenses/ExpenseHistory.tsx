@@ -57,15 +57,15 @@ export const ExpenseHistory: React.FC = () => {
     // Filter: Specific Date
     if (filterDate) {
       result = result.filter((e) => {
-        const itemDate = new Date(e.createdAt || e.date || 0).toISOString().split('T')[0];
+        const itemDate = new Date(e.dateTime || 0).toISOString().split('T')[0];
         return itemDate === filterDate;
       });
     }
 
     // Sorting: Newest -> Oldest vs Oldest -> Newest
     result.sort((a, b) => {
-      const timeA = new Date(a.createdAt || a.date || 0).getTime();
-      const timeB = new Date(b.createdAt || b.date || 0).getTime();
+      const timeA = new Date(a.dateTime  || 0).getTime();
+      const timeB = new Date(b.dateTime   || 0).getTime();
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
@@ -234,7 +234,7 @@ export const ExpenseHistory: React.FC = () => {
                       {exp.subcategory || '—'}
                     </td>
                     <td className="py-3.5 px-4 text-neutral-400 font-mono">
-                      {new Date(exp.createdAt || exp.date || '').toLocaleString('en-US', {
+                      {new Date(exp.dateTime || '').toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -298,7 +298,7 @@ export const ExpenseHistory: React.FC = () => {
 
                 <div className="flex items-center justify-between pt-2 border-t border-neutral-800/80 text-[11px] text-neutral-500">
                   <span className="font-mono">
-                    {new Date(exp.createdAt || exp.date || '').toLocaleDateString('en-US', {
+                    {new Date(exp.dateTime  || '').toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',

@@ -35,7 +35,7 @@ export const WeeklyExpenses: React.FC = () => {
   // Expenses within this week window
   const weekExpenses = useMemo(() => {
     return expenses.filter((e) => {
-      const d = new Date(e.createdAt || e.date || 0);
+      const d = new Date(e.dateTime || 0);
       return d >= monday && d <= sunday;
     });
   }, [expenses, monday, sunday]);
@@ -53,7 +53,7 @@ export const WeeklyExpenses: React.FC = () => {
       const ymd = d.toISOString().split('T')[0];
 
       const matching = weekExpenses.filter((e) => {
-        const itemYmd = new Date(e.createdAt || e.date || 0).toISOString().split('T')[0];
+        const itemYmd = new Date(e.dateTime || 0).toISOString().split('T')[0];
         return itemYmd === ymd;
       });
 
@@ -188,7 +188,7 @@ export const WeeklyExpenses: React.FC = () => {
                     <td className="py-3 px-3 text-neutral-300">{exp.category}</td>
                     <td className="py-3 px-3 text-neutral-400">{exp.subcategory || '—'}</td>
                     <td className="py-3 px-3 text-neutral-400 font-mono">
-                      {new Date(exp.createdAt || exp.date || '').toLocaleDateString('en-US', {
+                      {new Date(exp.dateTime || '').toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
                         day: 'numeric',

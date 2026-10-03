@@ -39,7 +39,7 @@ export const MonthlyExpenses: React.FC = () => {
   // Filter expenses for selected month and year
   const monthlyExpenses = useMemo(() => {
     return expenses.filter((e) => {
-      const d = new Date(e.createdAt || e.date || 0);
+      const d = new Date(e.dateTime || 0);
       return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
     });
   }, [expenses, selectedYear, selectedMonth]);
@@ -81,7 +81,7 @@ export const MonthlyExpenses: React.FC = () => {
       for (let d = day; d <= endDay; d++) {
         const targetDateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const matching = monthlyExpenses.filter((e) => {
-          const raw = e.createdAt || e.date;
+          const raw = e.dateTime ;
           return raw && new Date(raw).toISOString().split('T')[0] === targetDateStr;
         });
         segmentTotal += matching.reduce((s, e) => s + Number(e.amount), 0);
@@ -251,7 +251,7 @@ export const MonthlyExpenses: React.FC = () => {
                     <td className="py-3 px-3 text-neutral-300">{exp.category}</td>
                     <td className="py-3 px-3 text-neutral-400">{exp.subcategory || '—'}</td>
                     <td className="py-3 px-3 text-neutral-400 font-mono">
-                      {new Date(exp.createdAt || exp.date || '').toLocaleDateString('en-US', {
+                      {new Date(exp.dateTime || exp.date || '').toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                       })}
