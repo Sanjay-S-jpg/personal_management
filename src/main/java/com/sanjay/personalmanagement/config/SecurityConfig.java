@@ -71,7 +71,8 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "https://personal-management-eta-vert.vercel.app"
         ));
 
         configuration.setAllowedMethods(List.of(
